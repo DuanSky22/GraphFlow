@@ -1,34 +1,37 @@
 package com.duansky.hazelcast.graphflow.lib;
 
-import com.duansky.hazelcast.graphflow.components.Event;
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
 import com.duansky.hazelcast.graphflow.components.state.IntegralState;
 import com.duansky.hazelcast.graphflow.components.state.NeighborState;
 import com.duansky.hazelcast.graphflow.graph.Edge;
-import com.duansky.hazelcast.graphflow.util.Constracts;
+import com.duansky.hazelcast.graphflow.util.Contracts;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicLong;
 
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
+ * Triangle Count count the total different triangle of the specific graph.
+ * Here we suppose the graph is undirected.
+ *
+ * undirected
+ *
  * Created by SkyDream on 2017/2/15.
  */
 public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<KV,EV>>{
 
     IAtomicLong counter;
     HazelcastInstance hi;
-    NeighborState<KV> neighborState;
+    NeighborState<KV,EV> neighborState;
 
     public TriangleCountState(HazelcastInstance hi){
         this.hi = hi;
-        this.counter = hi.getAtomicLong(Constracts.TRIANGLE_COUNT_STATE);
-        neighborState = new NeighborState<KV>(hi);
+        this.counter = hi.getAtomicLong(Contracts.TRIANGLE_COUNT_STATE);
+        neighborState = new NeighborState<KV,EV>(hi);
     }
 
-    public void update(EdgeEvent<KV,EV> event) {
+    public boolean update(EdgeEvent<KV,EV> event) {
         EventType type = event.getType();
         Edge<KV,EV> edge = event.getValue();
         switch(type){
@@ -36,8 +39,8 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
                 KV source = edge.getSource();
                 KV target = edge .getTarget();
 
-                neighborState.addNeighbor(source,target);
-                neighborState.addNeighbor(target,source);
+                neighborState.update(event);
+                neighborState.update(new EdgeEvent<KV, EV>(type,edge.reverse()));
 
                 neighborState.lockKey(source); neighborState.lockKey(target);
 
@@ -55,9 +58,9 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
                 counter.addAndGet(increased);
 
                 neighborState.unlockKey(source); neighborState.unlockKey(target);
-                break;
+                return true;
             default:
-                break;
+                return false;
         }
     }
 

@@ -1,5 +1,6 @@
 package com.duansky.hazelcast.graphflow.lib;
 
+import com.duansky.hazelcast.graphflow.components.AbstractAlgorithm;
 import com.duansky.hazelcast.graphflow.components.event.EdgeAddEventStreamFromFile;
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
@@ -11,21 +12,16 @@ import com.hazelcast.core.HazelcastInstance;
 /**
  * Created by SkyDream on 2017/2/15.
  */
-public class TriangleCount<KV,EV,VV> {
+public class TriangleCount<KV,EV,VV> extends AbstractAlgorithm<EdgeAddEventStreamFromFile<KV,EV>,TriangleCountState<KV,EV>>{
     /** data **/
     private String path;
-
-    /** components **/
-    private EdgeAddEventStreamFromFile<KV,EV> stream;
-    private TriangleCountState<KV,EV> state;
 
     /** storage **/
     private static final HazelcastInstance STORAGE = Hazelcast.newHazelcastInstance();
 
-    public TriangleCount(String path){
+    public TriangleCount(String path,Class<KV> kvClass,Class<EV> evClass){
+        super(new EdgeAddEventStreamFromFile<KV, EV>(path,kvClass,evClass),new TriangleCountState<KV,EV>(STORAGE));
         this.path = path;
-        this.stream = new EdgeAddEventStreamFromFile<KV, EV>(path);
-        state = new TriangleCountState<KV,EV>(STORAGE);
     }
 
     public void run(){
@@ -38,7 +34,7 @@ public class TriangleCount<KV,EV,VV> {
     }
     public static void main(String args[]){
         String path = EdgeAddEventStreamFromFile.class.getClassLoader().getResource("").getPath() +"graph.txt";
-        TriangleCount<Integer,Integer,Integer> triangleCount = new TriangleCount(path);
+        TriangleCount<Integer,Integer,Integer> triangleCount = new TriangleCount(path,Integer.class,Integer.class);
         triangleCount.run();
     }
 }

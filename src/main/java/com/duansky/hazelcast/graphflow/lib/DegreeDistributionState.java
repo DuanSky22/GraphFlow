@@ -4,7 +4,7 @@ import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
 import com.duansky.hazelcast.graphflow.components.state.IndividualState;
 import com.duansky.hazelcast.graphflow.graph.Edge;
-import com.duansky.hazelcast.graphflow.util.Constracts;
+import com.duansky.hazelcast.graphflow.util.Contracts;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
@@ -20,7 +20,7 @@ public class DegreeDistributionState<KV,EV> implements IndividualState<KV,Long,E
 
     public DegreeDistributionState(HazelcastInstance hi){
         this.hi = hi;
-        data = hi.getMap(Constracts.DEGREE_DISTRIBUTION_STATE);
+        data = hi.getMap(Contracts.DEGREE_DISTRIBUTION_STATE);
     }
 
     public Long get(KV id) {
@@ -53,7 +53,7 @@ public class DegreeDistributionState<KV,EV> implements IndividualState<KV,Long,E
     }
 
     public Map<KV,Long> getCurrentState(){
-        return hi.getMap(Constracts.DEGREE_DISTRIBUTION_STATE);
+        return hi.getMap(Contracts.DEGREE_DISTRIBUTION_STATE);
     }
 
 

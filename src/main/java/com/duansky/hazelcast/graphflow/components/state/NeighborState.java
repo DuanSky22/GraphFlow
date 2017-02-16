@@ -3,7 +3,7 @@ package com.duansky.hazelcast.graphflow.components.state;
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
 import com.duansky.hazelcast.graphflow.graph.Edge;
-import com.duansky.hazelcast.graphflow.util.Constracts;
+import com.duansky.hazelcast.graphflow.util.Contracts;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
@@ -11,6 +11,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * Neighbor state store and provide access to the neighbors of the specific vertex.
+ * Here we suppose the edge is directed namely the neighbors of the vertex is out.
+ * Which means for the edge(source,target,value), the vertex target is the neighbor
+ * of the source vertex, but the source vertex is not the neighbor of the target.
+ *
+ * directed
+ *
  * Created by SkyDream on 2017/2/15.
  */
 public class NeighborState<KV,EV> implements IndividualState<KV,Set<KV>,EdgeEvent<KV,EV>> {
@@ -20,7 +27,7 @@ public class NeighborState<KV,EV> implements IndividualState<KV,Set<KV>,EdgeEven
 
     public NeighborState(HazelcastInstance hzi){
         this.hzi = hzi;
-        this.neighbors = hzi.getMap(Constracts.NEIGHBORHOOD_STATE);
+        this.neighbors = hzi.getMap(Contracts.NEIGHBORHOOD_STATE);
     }
 
     public Set<KV> get(KV id) {

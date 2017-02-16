@@ -1,9 +1,14 @@
 package com.duansky.hazelcast.graphflow.graph;
 
+import java.io.Serializable;
+
 /**
  * Created by SkyDream on 2017/2/15.
+ * @param <KV> the type of the vertex.
+ * @param <EV> the type of the edge value.
+ *
  */
-public class Edge<KV,EV> {
+public class Edge<KV,EV> implements Serializable{
 
     private KV source;
     private KV target;
@@ -39,6 +44,10 @@ public class Edge<KV,EV> {
 
     public void setEdgeValue(EV edgeValue) {
         this.edgeValue = edgeValue;
+    }
+
+    public Edge reverse(){
+        return new Edge(target,source,edgeValue);
     }
 
     @Override
