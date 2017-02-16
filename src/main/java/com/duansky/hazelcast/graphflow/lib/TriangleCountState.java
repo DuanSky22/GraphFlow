@@ -1,6 +1,7 @@
 package com.duansky.hazelcast.graphflow.lib;
 
 import com.duansky.hazelcast.graphflow.components.Event;
+import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
 import com.duansky.hazelcast.graphflow.components.state.IntegralState;
 import com.duansky.hazelcast.graphflow.components.state.NeighborState;
@@ -9,12 +10,13 @@ import com.duansky.hazelcast.graphflow.util.Constracts;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IAtomicLong;
 
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
  * Created by SkyDream on 2017/2/15.
  */
-public class TriangleCountState<KV,EV> implements IntegralState<Long,EventType,Edge<KV,EV>>{
+public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<KV,EV>>{
 
     IAtomicLong counter;
     HazelcastInstance hi;
@@ -26,7 +28,7 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EventType,E
         neighborState = new NeighborState<KV>(hi);
     }
 
-    public void update(Event<EventType, Edge<KV, EV>> event) {
+    public void update(EdgeEvent<KV,EV> event) {
         EventType type = event.getType();
         Edge<KV,EV> edge = event.getValue();
         switch(type){
@@ -38,8 +40,9 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EventType,E
                 neighborState.addNeighbor(target,source);
 
                 neighborState.lockKey(source); neighborState.lockKey(target);
-                TreeSet<KV> sn = neighborState.get(source);
-                TreeSet<KV> tn = neighborState.get(target);
+
+                Set<KV> sn = neighborState.get(source);
+                Set<KV> tn = neighborState.get(target);
 
                 int increased = 0;
                 if(sn.size() < tn.size()){
@@ -50,6 +53,7 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EventType,E
                         if(sn.contains(vertex)) increased++;
                 }
                 counter.addAndGet(increased);
+
                 neighborState.unlockKey(source); neighborState.unlockKey(target);
                 break;
             default:
@@ -60,5 +64,4 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EventType,E
     public Long get() {
         return counter.get();
     }
-
 }

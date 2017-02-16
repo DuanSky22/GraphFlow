@@ -7,6 +7,7 @@ public interface Constracts {
 
     /** state storage*/
     String NEIGHBORHOOD_STATE = "neighbors";
+    String NEIGHBORHOOD_WITH_EDGE_VALUE_STATE = "neighbor-with-edge-values";
     String DEGREE_DISTRIBUTION_STATE = "degree-distribution";
     String TRIANGLE_COUNT_STATE = "triangle-count";
 }

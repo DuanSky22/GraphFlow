@@ -1,5 +1,6 @@
 package com.duansky.hazelcast.graphflow.components.state;
 
+import com.duansky.hazelcast.graphflow.components.Event;
 import com.duansky.hazelcast.graphflow.components.State;
 
 /**
@@ -12,7 +13,7 @@ import com.duansky.hazelcast.graphflow.components.State;
  *
  * Created by SkyDream on 2017/2/15.
  */
-public interface IndividualState<KV,SV> extends State {
+public interface IndividualState<KV,SV,E extends Event> extends State<E> {
     /**
      * get the current state of the specific vertex.
      * @param id the id of the vertex.
@@ -25,5 +26,5 @@ public interface IndividualState<KV,SV> extends State {
      * @param id the id of the vertex.
      * @param value the new value of this vertex.
      */
-    void update(KV id, SV value);
+    void set(KV id, SV value);
 }

@@ -11,20 +11,14 @@ import com.duansky.hazelcast.graphflow.components.State;
  * to suggest the local triangle count state, this kind of state is the individual state.
  *
  * @param <F> the state type
- * @param <T> the event type
- * @param <V> the event value type
  *
  * Created by SkyDream on 2017/2/15.
  */
-public interface IntegralState<F,T,V> extends State{
+public interface IntegralState<F,E extends Event> extends State<E>{
     /**
      * get the current state.
      * @return the current state.
      */
     F get();
 
-    /**
-     * update the current state.
-     */
-    void update(Event<T,V> event);
 }

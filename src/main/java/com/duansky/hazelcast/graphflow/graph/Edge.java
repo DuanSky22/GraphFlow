@@ -3,7 +3,7 @@ package com.duansky.hazelcast.graphflow.graph;
 /**
  * Created by SkyDream on 2017/2/15.
  */
-public class Edge<KV,EV>{
+public class Edge<KV,EV> {
 
     private KV source;
     private KV target;
