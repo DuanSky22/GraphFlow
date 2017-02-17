@@ -52,11 +52,10 @@ public class SSSPState<KV,EV extends Number> implements IndividualState<KV, Long
 
     //TODO here we need think more.
     public void spread(KV id,Long value){
-        if(!state.containsKey(id)) //if this vertex is not in state before.
-            set(id,value);
-        else if(state.get(id) <= value) // if this vertex is already reachable and its distance is much smaller.
+        //if the vertex is not already in state and its closer to original vertex, we will change nothing.
+        if(state.containsKey(id) && state.get(id) <= value)
             return;
-
+        set(id,value);
         Set<Edge<KV, EV>> neighbors = neighborState.get(id);
         KV target; Long tarOldValue,tarNewValue;
         if(neighbors == null) return;
