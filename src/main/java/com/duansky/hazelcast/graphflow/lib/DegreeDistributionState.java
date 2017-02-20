@@ -2,6 +2,7 @@ package com.duansky.hazelcast.graphflow.lib;
 
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
+import com.duansky.hazelcast.graphflow.components.state.AbstractIndividualState;
 import com.duansky.hazelcast.graphflow.components.state.IndividualState;
 import com.duansky.hazelcast.graphflow.graph.Edge;
 import com.duansky.hazelcast.graphflow.util.Contracts;
@@ -9,53 +10,37 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by SkyDream on 2017/2/15.
  */
-public class DegreeDistributionState<KV,EV> implements IndividualState<KV,Long,EdgeEvent<KV,EV>> {
-
-    IMap<KV,Long> data;
-    HazelcastInstance hi;
+public class DegreeDistributionState<KV,EV> extends AbstractIndividualState<KV,Long,EdgeEvent<KV,EV>> implements IndividualState<KV,Long,EdgeEvent<KV,EV>> {
 
     public DegreeDistributionState(HazelcastInstance hi){
-        this.hi = hi;
-        data = hi.getMap(Contracts.DEGREE_DISTRIBUTION_STATE);
-    }
-
-    public Long get(KV id) {
-        return data.get(id);
-    }
-
-    public void set(KV id, Long value) {
-        data.put(id,value);
+        super(Contracts.DEGREE_DISTRIBUTION_STATE,hi);
     }
 
     public boolean increase(KV id){
-        if(data.containsKey(id)){
-            data.lock(id);
-            set(id,data.get(id)+1);
-            data.unlock(id);
+        if(state.containsKey(id)){
+            state.lock(id);
+            set(id,state.get(id)+1);
+            state.unlock(id);
         }else
             set(id,1L);
         return true;
     }
 
     public boolean decrease(KV id){
-        if(data.containsKey(id)){
-            data.lock(id);
-            long count = data.get(id);
+        if(state.containsKey(id)){
+            state.lock(id);
+            long count = state.get(id);
             if(count > 0) set(id,count-1);
             else return false;
-            data.unlock(id);
+            state.unlock(id);
         }
         return false;
     }
-
-    public Map<KV,Long> getCurrentState(){
-        return hi.getMap(Contracts.DEGREE_DISTRIBUTION_STATE);
-    }
-
 
     public boolean update(EdgeEvent<KV, EV> event) {
         EventType type = event.getType();

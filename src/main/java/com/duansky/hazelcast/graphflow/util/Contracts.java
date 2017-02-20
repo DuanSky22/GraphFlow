@@ -6,10 +6,12 @@ package com.duansky.hazelcast.graphflow.util;
 public interface Contracts {
 
     /** state storage*/
-    String NEIGHBORHOOD_STATE = "neighbors";
-    String NEIGHBORHOOD_WITH_EDGE_VALUE_STATE = "neighbor-with-edge-values";
-    String DEGREE_DISTRIBUTION_STATE = "degree-distribution";
+    String OUT_NEIGHBORHOOD_STATE = "out-neighbors";
+    String OUT_NEIGHBORHOOD_WITH_EDGE_VALUE_STATE = "out-neighbor-with-edge-values";
+    String IN_OUT_NEIGHBORHOOD_STATE = "in-out-neighbors";
 
+    String DEGREE_DISTRIBUTION_STATE = "degree-distribution";
     String TRIANGLE_COUNT_STATE = "triangle-count";
     String SSSP_STATE = "single-source-shortest-path";
+    String PAGERANK_STATE = "pagerank";
 }

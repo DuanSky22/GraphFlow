@@ -41,7 +41,7 @@ public class SSSP<KV,EV extends Number> extends AbstractAlgorithm<EdgeAddEventSt
 
     public static void main(String args[]){
         String path = EdgeAddEventStreamFromFile.class.getClassLoader().getResource("").getPath() +"graph.txt";
-        SSSP<Integer,Integer> distribution = new SSSP(path,1,false,Integer.class,Integer.class);
+        SSSP<Integer,Integer> distribution = new SSSP(path,1,true,Integer.class,Integer.class);
         distribution.run();
     }
 }
