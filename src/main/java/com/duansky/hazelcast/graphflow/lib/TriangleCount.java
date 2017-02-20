@@ -33,7 +33,7 @@ public class TriangleCount<KV,EV,VV> extends AbstractAlgorithm<EdgeAddEventStrea
         }
     }
     public static void main(String args[]){
-        String path = EdgeAddEventStreamFromFile.class.getClassLoader().getResource("").getPath() +"graph.txt";
+        String path = EdgeAddEventStreamFromFile.class.getClassLoader().getResource("").getPath() +"graph-10000-0.2-edges.txt";
         TriangleCount<Integer,Integer,Integer> triangleCount = new TriangleCount(path,Integer.class,Integer.class);
         triangleCount.run();
     }

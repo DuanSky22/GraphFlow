@@ -2,12 +2,12 @@ package com.duansky.hazelcast.graphflow.lib;
 
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
+import com.duansky.hazelcast.graphflow.components.state.AbstractIndividualState;
 import com.duansky.hazelcast.graphflow.components.state.IndividualState;
-import com.duansky.hazelcast.graphflow.components.state.NeighborEdgeValueState;
+import com.duansky.hazelcast.graphflow.components.state.OutNeighborWithEdgeValueState;
 import com.duansky.hazelcast.graphflow.graph.Edge;
 import com.duansky.hazelcast.graphflow.util.Contracts;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
 
 import java.util.Map;
 import java.util.Set;
@@ -19,25 +19,18 @@ import java.util.Set;
  *
  * Created by SkyDream on 2017/2/15.
  */
-public class SSSPState<KV,EV extends Number> implements IndividualState<KV, Long,EdgeEvent<KV, EV>>{
+public class SSSPState<KV,EV extends Number> extends AbstractIndividualState<KV, Long,EdgeEvent<KV, EV>> implements IndividualState<KV, Long,EdgeEvent<KV, EV>>{
 
     /**the start vertex of the SSSP **/
     private KV original;
 
     /**the tools**/
-    private NeighborEdgeValueState<KV, EV> neighborState;
-
-    /**the final result of SSSP, only reachable vertex can be added to this map. **/
-    private IMap<KV, Long> state;
-
-    HazelcastInstance hi;
-
+    private OutNeighborWithEdgeValueState<KV, EV> neighborState;
 
     public SSSPState(HazelcastInstance hi,KV original){
-        this.hi = hi;
+        super(Contracts.SSSP_STATE,hi);
         this.original = original;
-        this.neighborState = new NeighborEdgeValueState<KV, EV>(hi);
-        this.state = hi.getMap(Contracts.SSSP_STATE);
+        this.neighborState = new OutNeighborWithEdgeValueState<KV, EV>(hi);
         set(original,0L); // the original vertex is the seed.
     }
 
@@ -46,17 +39,12 @@ public class SSSPState<KV,EV extends Number> implements IndividualState<KV, Long
         else return -1L;
     }
 
-    public void set(KV id, Long value) {
-        state.set(id,value);
-    }
-
     //TODO here we need think more.
     public void spread(KV id,Long value){
-        if(!state.containsKey(id)) //if this vertex is not in state before.
-            set(id,value);
-        else if(state.get(id) <= value) // if this vertex is already reachable and its distance is much smaller.
+        //if the vertex is not already in state and its closer to original vertex, we will change nothing.
+        if(state.containsKey(id) && state.get(id) <= value)
             return;
-
+        set(id,value);
         Set<Edge<KV, EV>> neighbors = neighborState.get(id);
         KV target; Long tarOldValue,tarNewValue;
         if(neighbors == null) return;
@@ -90,9 +78,5 @@ public class SSSPState<KV,EV extends Number> implements IndividualState<KV, Long
             default:
                 throw new UnsupportedOperationException("The delete and update type events are not supported by now.");
         }
-    }
-
-    public Map<KV,Long> getCurrentState(){
-        return hi.getMap(Contracts.SSSP_STATE);
     }
 }

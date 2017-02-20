@@ -5,7 +5,6 @@ import com.duansky.hazelcast.graphflow.components.event.EventType;
 import com.duansky.hazelcast.graphflow.graph.Edge;
 import com.duansky.hazelcast.graphflow.util.Contracts;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,39 +19,28 @@ import java.util.Set;
  *
  * Created by SkyDream on 2017/2/15.
  */
-public class NeighborState<KV,EV> implements IndividualState<KV,Set<KV>,EdgeEvent<KV,EV>> {
+public class OutNeighborState<KV,EV> extends AbstractIndividualState<KV,Set<KV>,EdgeEvent<KV,EV>> implements IndividualState<KV,Set<KV>,EdgeEvent<KV,EV>> {
 
-    private HazelcastInstance hzi;
-    private IMap<KV,Set<KV>> neighbors;
 
-    public NeighborState(HazelcastInstance hzi){
-        this.hzi = hzi;
-        this.neighbors = hzi.getMap(Contracts.NEIGHBORHOOD_STATE);
-    }
-
-    public Set<KV> get(KV id) {
-        return neighbors.get(id);
-    }
-
-    public boolean containsKey(KV id){
-        return neighbors.containsKey(id);
+    public OutNeighborState(HazelcastInstance hi){
+        super(Contracts.OUT_NEIGHBORHOOD_STATE,hi);
     }
 
     public void lockKey(KV id){
-        neighbors.lock(id);
+        state.lock(id);
     }
 
     public void unlockKey(KV id){
-        neighbors.unlock(id);
+        state.unlock(id);
     }
 
     protected boolean addNeighbor(KV source, KV target){
-        if(neighbors.containsKey(source)){
-            neighbors.lock(source);
-            Set<KV> set = neighbors.get(source);
+        if(state.containsKey(source)){
+            state.lock(source);
+            Set<KV> set = state.get(source);
             set.add(target);
             set(source,set);
-            neighbors.unlock(source);
+            state.unlock(source);
         }else{
             Set<KV> set = new HashSet<KV>();
             set.add(target);
@@ -62,23 +50,15 @@ public class NeighborState<KV,EV> implements IndividualState<KV,Set<KV>,EdgeEven
     }
 
     protected boolean deleteNeighbor(KV source, KV target){
-        if(neighbors.containsKey(source)){
-            neighbors.lock(source);
-            Set<KV> set = neighbors.get(source);
+        if(state.containsKey(source)){
+            state.lock(source);
+            Set<KV> set = state.get(source);
             set.remove(target);
             set(source,set);
-            neighbors.unlock(source);
+            state.unlock(source);
             return true;
         }
         return false;
-    }
-
-    public void set(KV id, Set<KV> value) {
-        neighbors.set(id,value);
-    }
-
-    public HazelcastInstance getHzi() {
-        return hzi;
     }
 
     public boolean update(EdgeEvent<KV, EV> event) {

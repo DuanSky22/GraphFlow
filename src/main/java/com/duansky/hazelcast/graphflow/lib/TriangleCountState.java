@@ -3,7 +3,7 @@ package com.duansky.hazelcast.graphflow.lib;
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
 import com.duansky.hazelcast.graphflow.components.state.IntegralState;
-import com.duansky.hazelcast.graphflow.components.state.NeighborState;
+import com.duansky.hazelcast.graphflow.components.state.OutNeighborState;
 import com.duansky.hazelcast.graphflow.graph.Edge;
 import com.duansky.hazelcast.graphflow.util.Contracts;
 import com.hazelcast.core.HazelcastInstance;
@@ -23,12 +23,12 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
 
     IAtomicLong counter;
     HazelcastInstance hi;
-    NeighborState<KV,EV> neighborState;
+    OutNeighborState<KV,EV> outNeighborState;
 
     public TriangleCountState(HazelcastInstance hi){
         this.hi = hi;
         this.counter = hi.getAtomicLong(Contracts.TRIANGLE_COUNT_STATE);
-        neighborState = new NeighborState<KV,EV>(hi);
+        outNeighborState = new OutNeighborState<KV,EV>(hi);
     }
 
     public boolean update(EdgeEvent<KV,EV> event) {
@@ -39,13 +39,13 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
                 KV source = edge.getSource();
                 KV target = edge .getTarget();
 
-                neighborState.update(event);
-                neighborState.update(new EdgeEvent<KV, EV>(type,edge.reverse()));
+                outNeighborState.update(event);
+                outNeighborState.update(new EdgeEvent<KV, EV>(type,edge.reverse()));
 
-                neighborState.lockKey(source); neighborState.lockKey(target);
+                outNeighborState.lockKey(source); outNeighborState.lockKey(target);
 
-                Set<KV> sn = neighborState.get(source);
-                Set<KV> tn = neighborState.get(target);
+                Set<KV> sn = outNeighborState.get(source);
+                Set<KV> tn = outNeighborState.get(target);
 
                 int increased = 0;
                 if(sn.size() < tn.size()){
@@ -57,7 +57,7 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
                 }
                 counter.addAndGet(increased);
 
-                neighborState.unlockKey(source); neighborState.unlockKey(target);
+                outNeighborState.unlockKey(source); outNeighborState.unlockKey(target);
                 return true;
             default:
                 return false;
