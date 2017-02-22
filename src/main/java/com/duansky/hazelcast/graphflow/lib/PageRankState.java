@@ -39,8 +39,8 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
     protected Double init(){
         return 1.0d;
     }
-    protected Double calculate(boolean useDelta,Double original,Double increased){
-        if(useDelta) return delta * increased + (1-delta) * original;
+    protected Double calculate(boolean useDelta,Double original,Double increased,int N){
+        if(useDelta) return delta * increased + (1-delta) / N;
         else return increased + original;
     }
 
@@ -52,13 +52,9 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
             case ADD:
                 neighborState.update(event);
                 //if the verities of the edge is new, we just init it.
-                if(!state.containsKey(source) && !state.containsKey(target)){
-                    state.set(source,init());
-                    state.set(target,init());
-                    spread(source);
-                }else{
-                   spread(source);
-                }
+                if(!state.containsKey(source)) state.set(source, init());
+                if(!state.containsKey(target)) state.set(target, init());
+                spread(source);
                 return true;
             default:
                 throw new UnsupportedOperationException("The delete and update type events are not supported by now.");
@@ -66,24 +62,25 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
     }
 
     private void spread(KV source) {
-        if(!state.containsKey(source)) state.put(source,init());
         // set the current state as the init state.
         Map<KV,Double> original = getCurrentState();
+        int N = original.size();
         Map<KV,Double[]> cached = new HashMap<>();
         Set<KV> actives = new HashSet<>();
 
+        //init the current state.
         for(Map.Entry<KV,Double> pair : original.entrySet()){
             Double[] ot = new Double[2]; // ot:(original,increased)
             ot[0] = pair.getValue();
             ot[1] = 0d;
             cached.put(pair.getKey(),ot);
         }
-
+        //iteration
         actives.add(source); int step = 1;
         while(!actives.isEmpty() && step <= maxIteration){
             Set<KV> newActives = new HashSet<>();
             for(KV active : actives){
-                Double v = calculate(true,cached.get(active)[0],cached.get(active)[1]);
+                Double v = calculate(true,cached.get(active)[0],cached.get(active)[1],N);
                 // send the page rank value to its neighbors.
                 Set<KV> neighbors = neighborState.get(active); // get all its out neighbors.
                 if(neighbors != null && !neighbors.isEmpty()){
@@ -93,7 +90,7 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
                         Double[] old = cached.get(neighbor);
                         if(old == null){
                             old = new Double[2];
-                            old[0] = 1d; old[1] = v;
+                            old[0] = init(); old[1] = v;
                             cached.put(neighbor,old);
                         }
                         else
@@ -110,7 +107,7 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
         }
         Double newValue;
         for(Map.Entry<KV,Double[]> entry : cached.entrySet()){
-            newValue = calculate(true,entry.getValue()[0],entry.getValue()[1]);
+            newValue = calculate(true,entry.getValue()[0],entry.getValue()[1],N);
             set(entry.getKey(),newValue);
         }
     }
