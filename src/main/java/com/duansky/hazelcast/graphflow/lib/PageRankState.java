@@ -21,6 +21,7 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
     /** algorithm parameters **/
     private double delta = 0.2;
     private int maxIteration = 10000;
+    private double threshold = 0.0001;
 
     /** tools **/
     private OutNeighborState<KV,EV> neighborState;
@@ -39,6 +40,7 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
     protected Double init(){
         return 1.0d;
     }
+
     protected Double calculate(boolean useDelta,Double original,Double increased,int N){
         if(useDelta) return delta * increased + (1-delta) / N;
         else return increased + original;
@@ -81,26 +83,30 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
             Set<KV> newActives = new HashSet<>();
             for(KV active : actives){
                 Double v = calculate(true,cached.get(active)[0],cached.get(active)[1],N);
-                // send the page rank value to its neighbors.
-                Set<KV> neighbors = neighborState.get(active); // get all its out neighbors.
-                if(neighbors != null && !neighbors.isEmpty()){
-                    int size = neighbors.size();
-                    v = v / size;
-                    for(KV neighbor : neighbors){
-                        Double[] old = cached.get(neighbor);
-                        if(old == null){
-                            old = new Double[2];
-                            old[0] = init(); old[1] = v;
-                            cached.put(neighbor,old);
+                //test if it need to spread its influence.
+                if(Math.abs(cached.get(active)[0] - v) > threshold){
+                    // send the page rank value to its neighbors.
+                    Set<KV> neighbors = neighborState.get(active); // get all its out neighbors.
+                    if(neighbors != null && !neighbors.isEmpty()){
+                        int size = neighbors.size();
+                        v = v / size;
+                        for(KV neighbor : neighbors){
+                            Double[] old = cached.get(neighbor);
+                            if(old == null){
+                                old = new Double[2];
+                                old[0] = init(); old[1] = v;
+                                cached.put(neighbor,old);
+                            }
+                            else
+                                old[1] += v; //increase the page rank value.
+                            newActives.add(neighbor);
                         }
-                        else
-                            old[1] += v; //increase the page rank value.
-                        newActives.add(neighbor);
+                        //reset itself page rank value to zero.
+                        Double[] refresh = cached.get(active);
+                        refresh[0] = 0d;
                     }
-                    //reset itself page rank value to zero.
-                    Double[] refresh = cached.get(active);
-                    refresh[0] = 0d;
                 }
+
             }
             actives = newActives;
             step++;
