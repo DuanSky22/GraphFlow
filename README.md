@@ -12,5 +12,5 @@ By now, I have finished this.
 5. design and implement PR algorithm.
 
 Attachment:
-[GraphFlow:Dynamic Graph Computing Model Based on State Updating](/doc/GraphFlow-v1.0.pdf)
-[HzGraphFlow:Design and Implements GraphFlow on Hazelcast](/doc/HzGraphFlow系统的设计与实现.pdf)
+* [GraphFlow:Dynamic Graph Computing Model Based on State Updating](/doc/GraphFlow-v1.0.pdf)
+* [HzGraphFlow:Design and Implements GraphFlow on Hazelcast](/doc/HzGraphFlow系统的设计与实现.pdf)
