@@ -1,7 +1,4 @@
 /target
-
 /.idea
-
-
-/.git
-HzGraphFlow.iml
+/*/target
+/*/.idea
