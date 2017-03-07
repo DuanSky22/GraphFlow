@@ -16,7 +16,7 @@
 
 ## Iterate Operator ##
 
-![Iterate Model](pic\iterations\iterations_iterate_operator.png)
+![Iterate Model](pic/iterations/iterations_iterate_operator.png)
 
 如上图所示，是迭代操作的计算过程：
 
@@ -48,7 +48,7 @@ setFinalState(state);
 
 在如下的操作中，我们以迭代的方式增长集合中的元素值：
 
-![Iterate Examples](pic\iterations\iterations_iterate_operator_example.png)
+![Iterate Examples](pic/iterations/iterations_iterate_operator_example.png)
 
 1. **Iteration Input:** 最开始的数据是一个包含1,2,3,4,5这5条记录的数据源。
 
@@ -85,7 +85,7 @@ delta迭代运算符涵盖**增量迭代**的情况。增量迭代**有选择地
 
 **solution set**(结果集)：迭代结果的集合。结果集是能够直接反馈算法的最终计算结果。随着每次迭代的进行，结果集中的元素可能会被不断的更新，最后一次的迭代的结果，将作为整个算法的最终迭代结果。
 
-在实用情况下，这将使得算法计算更加高效（更快的收敛），因为在每次迭代过程中，结果集（solution set）中不是所有的元素都会发生改变。这将允许问题域集中在热点数据（hot parts）上，并且不去改变哪些冷点数据（cold parts）。若干次迭代之后，结果集中的大部分数据都会慢慢冷却，相比较上次的迭代操作，此次迭代只会在很小的数据集上进行运算。![iterations_delta_iterate_operator](pic\iterations\iterations_delta_iterate_operator.png)
+在实用情况下，这将使得算法计算更加高效（更快的收敛），因为在每次迭代过程中，结果集（solution set）中不是所有的元素都会发生改变。这将允许问题域集中在热点数据（hot parts）上，并且不去改变哪些冷点数据（cold parts）。若干次迭代之后，结果集中的大部分数据都会慢慢冷却，相比较上次的迭代操作，此次迭代只会在很小的数据集上进行运算。![iterations_delta_iterate_operator](pic/iterations/iterations_delta_iterate_operator.png)
 
 1. **Iteration Input:** 初始化的workset 和 solution set是从数据源或者上一次操作的数据作为初始数据。
 2. **Step Function:** 每次迭代过程中执行的函数。他可以是任意的数据转换操作，如*map,reduce,join*等，这就是你需要定义的核心的任务逻辑。
@@ -116,7 +116,7 @@ setFinalState(solution);
 
 在如下的示例中，每个顶点都有一个ID号和一个颜色。每个顶点都会将自己的ID号传给邻接点，目标是将子图中的所有顶点都赋值为最小的ID号。如果接收的ID号小于自己当前的ID号，则更新当前顶点的颜色为所接收的ID号对应的颜色。这歌算法在社区分析和连通子图中使用。
 
-![iterations_delta_iterate_operator_example](pic\iterations\iterations_delta_iterate_operator_example.png)
+![iterations_delta_iterate_operator_example](pic/iterations/iterations_delta_iterate_operator_example.png)
 
 初始输入（Initial input）将被作为初始的工作集和结果集。在上图中，节点的颜色变化形象的展示了solution set的变化过程。在每一次的迭代过程中，最小ID号的节点的颜色在子图中传播，与此同时，工作节点的数量也在逐步减少。从最开始的7个节点减少到最后一次迭代时的0个节点。当工作集为空时，迭代结束。
 
@@ -130,4 +130,6 @@ setFinalState(solution);
 
 ## Superstep Synchronization ##
 
-一次迭代操作中的step function的执行作为一个单独的迭代，则在并行场景下，我们将step function的设置成多个实例，在迭代状态的不同分区中并行执行。通常将step function的所有的并行实例形成的整体成为一个superstep，同时这也是同步的粒度。因此，一个迭代中的所有的并行的任务必须全部执行完后，下一个超步才能够被初始化。终止条件也将在超步的栅栏中进行评估。![iterations_supersteps](pic\iterations\iterations_supersteps.png)
+一次迭代操作中的step function的执行作为一个单独的迭代，则在并行场景下，我们将step function的设置成多个实例，在迭代状态的不同分区中并行执行。通常将step function的所有的并行实例形成的整体成为一个superstep，同时这也是同步的粒度。因此，一个迭代中的所有的并行的任务必须全部执行完后，下一个超步才能够被初始化。终止条件也将在超步的栅栏中进行评估。
+
+![iterations_supersteps](pic/iterations/iterations_supersteps.png)
