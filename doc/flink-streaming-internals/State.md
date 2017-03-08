@@ -47,6 +47,6 @@ A[Data Stream] -->B{Key <br> Selector}
 - `FoldingState<T, ACC> getFoldingState(FoldingStateDescriptor<T, ACC>)`
 - `MapState<UK, UV> getMapState(MapStateDescriptor<UK, UV>)`
 
-![state](pic\state.png)
+![state](pic/state.png)
 
 `pay attention:` 对于OperatorState跟checkpoint相关，不是本项目相关的核心内容。因此不再细讨论。而且关于State的核心实现包在flink-runtime包的org.apache.flink.runtime.state下，可以自行浏览。
