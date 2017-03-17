@@ -17,8 +17,8 @@ import java.util.Set;
  */
 public class DegreeDistributionState<KV,EV> extends AbstractIndividualState<KV,Long,EdgeEvent<KV,EV>> implements IndividualState<KV,Long,EdgeEvent<KV,EV>> {
 
-    public DegreeDistributionState(HazelcastInstance hi){
-        super(Contracts.DEGREE_DISTRIBUTION_STATE,hi);
+    public DegreeDistributionState(String name,HazelcastInstance hi){
+        super(Contracts.DEGREE_DISTRIBUTION_STATE+"-"+name,hi);
     }
 
     public boolean increase(KV id){

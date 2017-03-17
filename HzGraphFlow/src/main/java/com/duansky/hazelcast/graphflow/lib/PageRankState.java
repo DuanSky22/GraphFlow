@@ -26,13 +26,13 @@ public class PageRankState<KV,EV> extends AbstractIndividualState<KV,Double,Edge
     /** tools **/
     private OutNeighborState<KV,EV> neighborState;
 
-    public PageRankState(HazelcastInstance hi){
-        super(Contracts.PAGERANK_STATE,hi);
+    public PageRankState(String name,HazelcastInstance hi){
+        super(Contracts.PAGERANK_STATE+"-"+name,hi);
         neighborState = new OutNeighborState<KV, EV>(hi);
     }
 
-    public PageRankState(HazelcastInstance hi, double delta,int maxIteration){
-        this(hi);
+    public PageRankState(String name,HazelcastInstance hi, double delta,int maxIteration){
+        this(name,hi);
         this.delta = delta;
         this.maxIteration = maxIteration;
     }

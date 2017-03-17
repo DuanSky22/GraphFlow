@@ -25,9 +25,9 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
     HazelcastInstance hi;
     OutNeighborState<KV,EV> outNeighborState;
 
-    public TriangleCountState(HazelcastInstance hi){
+    public TriangleCountState(String name,HazelcastInstance hi){
         this.hi = hi;
-        this.counter = hi.getAtomicLong(Contracts.TRIANGLE_COUNT_STATE);
+        this.counter = hi.getAtomicLong(Contracts.TRIANGLE_COUNT_STATE+"-"+name);
         outNeighborState = new OutNeighborState<KV,EV>(hi);
     }
 

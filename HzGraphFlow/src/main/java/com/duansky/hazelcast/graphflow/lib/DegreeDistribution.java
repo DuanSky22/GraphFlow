@@ -5,6 +5,7 @@ import com.duansky.hazelcast.graphflow.components.event.EdgeAddEventStreamFromFi
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
 import com.duansky.hazelcast.graphflow.graph.Edge;
+import com.duansky.hazelcast.graphflow.storage.StorageFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
@@ -15,15 +16,19 @@ import java.util.Map;
  */
 public class DegreeDistribution<KV,EV> extends AbstractAlgorithm<EdgeAddEventStreamFromFile<KV,EV>,DegreeDistributionState<KV,EV>>{
 
+    /** private name **/
+    private String name;
+
     /** data **/
     private String path;
 
     /** storage **/
-    private static final HazelcastInstance STORAGE = Hazelcast.newHazelcastInstance();
+    private static final HazelcastInstance STORAGE = StorageFactory.getClient();
 
-    public DegreeDistribution(String path,Class<KV> kvClass,Class<EV> evClass){
-        super(new EdgeAddEventStreamFromFile<KV, EV>(path,kvClass,evClass),new DegreeDistributionState<KV,EV>(STORAGE));
+    public DegreeDistribution(String name,String path,Class<KV> kvClass,Class<EV> evClass){
+        super(new EdgeAddEventStreamFromFile<KV, EV>(path,kvClass,evClass),new DegreeDistributionState<KV,EV>(name,STORAGE));
         this.path = path;
+        this.name = name;
     }
 
     public void run(){
@@ -38,8 +43,8 @@ public class DegreeDistribution<KV,EV> extends AbstractAlgorithm<EdgeAddEventStr
     }
 
     public static void main(String args[]){
-        String path = EdgeAddEventStreamFromFile.class.getClassLoader().getResource("").getPath() +"graph.txt";
-        DegreeDistribution<Integer,Integer> distribution = new DegreeDistribution(path,Integer.class,Integer.class);
+        String path = EdgeAddEventStreamFromFile.class.getClassLoader().getResource("").getPath() +"graph-1000-0.1-p2.txt";
+        DegreeDistribution<Integer,Integer> distribution = new DegreeDistribution("test",path,Integer.class,Integer.class);
         distribution.run();
     }
 

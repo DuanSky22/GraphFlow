@@ -3,6 +3,7 @@ package com.duansky.hazelcast.graphflow.lib;
 import com.duansky.hazelcast.graphflow.components.AbstractAlgorithm;
 import com.duansky.hazelcast.graphflow.components.event.EdgeAddEventStreamFromFile;
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
+import com.duansky.hazelcast.graphflow.storage.StorageFactory;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
@@ -16,14 +17,16 @@ public class SSSP<KV,EV extends Number> extends AbstractAlgorithm<EdgeAddEventSt
     /** data **/
     private String path;
     private boolean directed;
+    private String name;
 
     /** storage **/
-    private static final HazelcastInstance STORAGE = Hazelcast.newHazelcastInstance();
+    private static final HazelcastInstance STORAGE = StorageFactory.getClient();
 
-    public SSSP(String path,KV original,boolean directed,Class<KV> kvClass,Class<EV> evClass){
-        super(new EdgeAddEventStreamFromFile<KV, EV>(path,kvClass,evClass),new SSSPState<KV,EV>(STORAGE,original));
+    public SSSP(String name,String path,KV original,boolean directed,Class<KV> kvClass,Class<EV> evClass){
+        super(new EdgeAddEventStreamFromFile<KV, EV>(path,kvClass,evClass),new SSSPState<KV,EV>(name,STORAGE,original));
         this.path = path;
         this.directed = directed;
+        this.name = name;
     }
 
     public void run() {
@@ -40,8 +43,8 @@ public class SSSP<KV,EV extends Number> extends AbstractAlgorithm<EdgeAddEventSt
     }
 
     public static void main(String args[]){
-        String path = EdgeAddEventStreamFromFile.class.getClassLoader().getResource("").getPath() +"graph.txt";
-        SSSP<Integer,Integer> distribution = new SSSP(path,1,true,Integer.class,Integer.class);
+        String path = EdgeAddEventStreamFromFile.class.getClassLoader().getResource("").getPath() +"graph-1000-0.1-p2.txt";
+        SSSP<Integer,Integer> distribution = new SSSP("test",path,1,true,Integer.class,Integer.class);
         distribution.run();
     }
 }

@@ -27,8 +27,8 @@ public class SSSPState<KV,EV extends Number> extends AbstractIndividualState<KV,
     /**the tools**/
     private OutNeighborWithEdgeValueState<KV, EV> neighborState;
 
-    public SSSPState(HazelcastInstance hi,KV original){
-        super(Contracts.SSSP_STATE,hi);
+    public SSSPState(String name,HazelcastInstance hi,KV original){
+        super(Contracts.SSSP_STATE+"-"+name,hi);
         this.original = original;
         this.neighborState = new OutNeighborWithEdgeValueState<KV, EV>(hi);
         set(original,0L); // the original vertex is the seed.
