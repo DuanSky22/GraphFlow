@@ -16,7 +16,7 @@ public class InOutNeighborState<KV,EV> extends AbstractIndividualState<KV,Set<KV
 
 
     public InOutNeighborState(HazelcastInstance hi) {
-        super(Contracts.IN_OUT_NEIGHBORHOOD_STATE, hi);
+        super(Contracts.IN_OUT_NEIGHBORHOOD_STATE+System.currentTimeMillis(), hi);
     }
 
     public boolean update(EdgeEvent<KV, EV> event) {

@@ -22,7 +22,7 @@ import java.util.Set;
 public class OutNeighborWithEdgeValueState<KV,EV> extends AbstractIndividualState<KV,Set<Edge<KV, EV>>,EdgeEvent<KV,EV>> implements IndividualState<KV,Set<Edge<KV,EV>>,EdgeEvent<KV,EV>>{
 
     public OutNeighborWithEdgeValueState(HazelcastInstance hi){
-        super(Contracts.OUT_NEIGHBORHOOD_WITH_EDGE_VALUE_STATE,hi);
+        super(Contracts.OUT_NEIGHBORHOOD_WITH_EDGE_VALUE_STATE+System.currentTimeMillis(),hi);
     }
 
     public void set(KV id, Set<Edge<KV, EV>> value) {

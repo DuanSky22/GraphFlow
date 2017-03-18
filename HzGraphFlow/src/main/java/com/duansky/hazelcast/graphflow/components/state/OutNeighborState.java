@@ -23,7 +23,7 @@ public class OutNeighborState<KV,EV> extends AbstractIndividualState<KV,Set<KV>,
 
 
     public OutNeighborState(HazelcastInstance hi){
-        super(Contracts.OUT_NEIGHBORHOOD_STATE,hi);
+        super(Contracts.OUT_NEIGHBORHOOD_STATE+System.currentTimeMillis(),hi);
     }
 
     public void lockKey(KV id){

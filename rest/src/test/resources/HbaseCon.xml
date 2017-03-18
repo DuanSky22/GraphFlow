@@ -1,0 +1,5 @@
+<HbaseCon>
+	<hbase.zookeeper.property.clientPort>2181</hbase.zookeeper.property.clientPort>
+	<hbase.zookeeper.quorum>133.133.134.130</hbase.zookeeper.quorum>
+	<hbase.master>133.133.134.106:60000</hbase.master>
+</HbaseCon>
