@@ -5,6 +5,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by SkyDream on 2017/2/17.
@@ -14,6 +15,7 @@ public abstract class AbstractIndividualState<KV,SV,E extends Event> implements 
     protected IMap<KV,SV> state;
     protected String name;
     protected HazelcastInstance hi;
+    public static AtomicLong UPDATE_CONFLICT_COUNTER = new AtomicLong(0);
 
     public AbstractIndividualState(String name,HazelcastInstance hi){
         this.name = name;

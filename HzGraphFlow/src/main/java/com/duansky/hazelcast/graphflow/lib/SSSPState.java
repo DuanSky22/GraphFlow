@@ -19,7 +19,7 @@ import java.util.Set;
  *
  * Created by SkyDream on 2017/2/15.
  */
-public class SSSPState<KV,EV extends Number> extends AbstractIndividualState<KV, Long,EdgeEvent<KV, EV>> implements IndividualState<KV, Long,EdgeEvent<KV, EV>>{
+public class SSSPState<KV,EV extends Number> extends AbstractIndividualState<KV, Double,EdgeEvent<KV, EV>> implements IndividualState<KV, Double,EdgeEvent<KV, EV>>{
 
     /**the start vertex of the SSSP **/
     private KV original;
@@ -30,34 +30,40 @@ public class SSSPState<KV,EV extends Number> extends AbstractIndividualState<KV,
     public SSSPState(String name,HazelcastInstance hi,KV original){
         super(Contracts.SSSP_STATE+"-"+name,hi);
         this.original = original;
-        this.neighborState = new OutNeighborWithEdgeValueState<KV, EV>(hi);
-        set(original,0L); // the original vertex is the seed.
+        this.neighborState = new OutNeighborWithEdgeValueState<KV, EV>(Contracts.SSSP_STATE+"-"+name,hi);
+        set(original,0d); // the original vertex is the seed.
     }
 
-    public Long get(KV id) {
+    public Double get(KV id) {
         if(state.containsKey(id)) return state.get(id);
-        else return -1L;
+        else return Double.MAX_VALUE;
     }
 
     //TODO here we need think more.
-    public void spread(KV id,Long value){
+    public void spread(KV id,Double value){
         //if the vertex is not already in state and its closer to original vertex, we will change nothing.
-        if(state.containsKey(id) && state.get(id) <= value)
+        if(state.isLocked(id))
+            UPDATE_CONFLICT_COUNTER.incrementAndGet();
+        state.lock(id);
+        if(state.containsKey(id) && state.get(id) <= value){
+            state.unlock(id);
             return;
+        }
         set(id,value);
+        state.unlock(id);
         Set<Edge<KV, EV>> neighbors = neighborState.get(id);
-        KV target; Long tarOldValue,tarNewValue;
+        KV target; Double tarOldValue,tarNewValue;
         if(neighbors == null) return;
         for(Edge<KV,EV> edge : neighbors){
             target = edge.getTarget();
             if(state.containsKey(target)){//if this vertex has already calculated.
-                tarOldValue = get(target).longValue();
-                tarNewValue = value + edge.getEdgeValue().longValue();
+                tarOldValue = get(target).doubleValue();
+                tarNewValue = value + edge.getEdgeValue().doubleValue();
                 if( tarNewValue < tarOldValue){ // if the new value is smaller.
                     spread(target,tarNewValue);
                 }
             }else{//else the vertex is reachable now.
-                tarNewValue = value + edge.getEdgeValue().longValue();
+                tarNewValue = value + edge.getEdgeValue().doubleValue();
                 spread(target,tarNewValue);
             }
         }
@@ -71,7 +77,7 @@ public class SSSPState<KV,EV extends Number> extends AbstractIndividualState<KV,
             case ADD:
                 neighborState.update(event); //update the neighbors.
                 if(state.containsKey(source)){
-                    Long newValue = get(source) + edge.getEdgeValue().longValue();
+                    Double newValue = get(source) + edge.getEdgeValue().doubleValue();
                     spread(target,newValue);
                 }
                 return true;

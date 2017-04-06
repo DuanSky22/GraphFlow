@@ -3,10 +3,15 @@ package com.duansky.hazelcast.graphflow.lib;
 import com.duansky.hazelcast.graphflow.components.AbstractAlgorithm;
 import com.duansky.hazelcast.graphflow.components.event.EdgeAddEventStreamFromFile;
 import com.duansky.hazelcast.graphflow.storage.StorageFactory;
+import com.duansky.hazelcast.graphflow.util.Files;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.Map;
+
+import static com.duansky.hazelcast.graphflow.util.Contracts.TEST_BASE;
 
 /**
  * Created by SkyDream on 2017/2/20.
@@ -15,7 +20,7 @@ public class PageRank<KV,EV> extends AbstractAlgorithm<EdgeAddEventStreamFromFil
 
     /** algorithm parameters **/
     private double delta = 0.2;
-    private int maxIteration = 10000;
+    private int maxIteration = 10;
     private String path;
     private String name;
 
@@ -32,12 +37,16 @@ public class PageRank<KV,EV> extends AbstractAlgorithm<EdgeAddEventStreamFromFil
 
     @Override
     public void run() {
+        System.out.println("start the page rank algorithm.");
+        long start,end,counter = 1;
+        PrintWriter writer = Files.asPrintWriter(TEST_BASE+ File.separator+"pr-"+System.currentTimeMillis()+".txt",true);
         while(stream.hasNext()){
+            start = System.currentTimeMillis();
             state.update(stream.next());
-            System.out.println("==============");
-            Map<KV,Double> prs = state.getCurrentState();
-            for(Map.Entry entry : prs.entrySet())
-                System.out.println(entry.getKey() + ":" + entry.getValue());
+            end = System.currentTimeMillis();
+            writer.append((end-start)+"\n");
+            writer.flush();
+            System.out.println("edge:"+(counter++)+"\ttime:"+(end-start));
         }
     }
 
