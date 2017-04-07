@@ -15,8 +15,8 @@ import java.util.Set;
 public class InOutNeighborState<KV,EV> extends AbstractIndividualState<KV,Set<KV>[],EdgeEvent<KV,EV>> {
 
 
-    public InOutNeighborState(HazelcastInstance hi) {
-        super(Contracts.IN_OUT_NEIGHBORHOOD_STATE+System.currentTimeMillis(), hi);
+    public InOutNeighborState(String name,HazelcastInstance hi) {
+        super(Contracts.IN_OUT_NEIGHBORHOOD_STATE+"-"+name, hi);
     }
 
     public boolean update(EdgeEvent<KV, EV> event) {
@@ -32,45 +32,67 @@ public class InOutNeighborState<KV,EV> extends AbstractIndividualState<KV,Set<KV
         }
     }
 
+    public boolean isLocked(KV id){
+        return state.isLocked(id);
+    }
+
+    public void lock(KV id){
+        state.lock(id);
+    }
+
+    public void unlock(KV id){
+        state.unlock(id);
+    }
+
     protected boolean addNeighbor(KV source,KV target){
         Set<KV>[] sourceInout,targetInout;
-        state.lock(source);state.lock(target);
-        if(state.containsKey(source)){
-            sourceInout = state.get(source);
-            sourceInout[1].add(target);
-        }else{
-            sourceInout = new HashSet[2];
-            sourceInout[0] = new HashSet<KV>();
-            sourceInout[1] = new HashSet<KV>();
-            sourceInout[1].add(target);
-        }
+        try{
+            if(state.isLocked(source) || state.isLocked(target))
+                UPDATE_CONFLICT_COUNTER.incrementAndGet();
 
-        if(state.containsKey(target)){
-            targetInout = state.get(target);
-            targetInout[0].add(source);
-        }else{
-            targetInout = new HashSet[2];
-            targetInout[0] = new HashSet<KV>();
-            targetInout[1] = new HashSet<KV>();
-            targetInout[0].add(source);
+            state.lock(source);state.lock(target);
+
+            if(state.containsKey(source)){
+                sourceInout = state.get(source);
+                sourceInout[1].add(target);
+            }else{
+                sourceInout = new HashSet[2];
+                sourceInout[0] = new HashSet<KV>();
+                sourceInout[1] = new HashSet<KV>();
+                sourceInout[1].add(target);
+            }
+
+            if(state.containsKey(target)){
+                targetInout = state.get(target);
+                targetInout[0].add(source);
+            }else{
+                targetInout = new HashSet[2];
+                targetInout[0] = new HashSet<KV>();
+                targetInout[1] = new HashSet<KV>();
+                targetInout[0].add(source);
+            }
+            state.put(source,sourceInout);
+            state.put(target,targetInout);
+            return true;
+        }finally{
+            state.unlock(target);state.unlock(source);
         }
-        state.put(source,sourceInout);
-        state.put(target,targetInout);
-        state.unlock(source);state.unlock(target);
-        return true;
     }
 
     protected boolean deleteNeighbor(KV source,KV target){
         boolean res = true;
-        Set<KV>[] inout;
-        state.lock(source);state.lock(target);
-        if(state.containsKey(source) && ((inout = state.get(source)) != null)){
-            res &= inout[1].remove(target);
+        try{
+            Set<KV>[] inout;
+            state.lock(source);state.lock(target);
+            if(state.containsKey(source) && ((inout = state.get(source)) != null)){
+                res &= inout[1].remove(target);
+            }
+            if(state.containsKey(target) && ((inout = state.get(target)) != null)){
+                res &= inout[0].remove(source);
+            }
+            return res;
+        }finally {
+            state.unlock(target);state.unlock(source);
         }
-        if(state.containsKey(target) && ((inout = state.get(target)) != null)){
-            res &= inout[0].remove(source);
-        }
-        state.unlock(source);state.unlock(target);
-        return res;
     }
 }

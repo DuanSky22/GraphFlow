@@ -22,24 +22,39 @@ public class DegreeDistributionState<KV,EV> extends AbstractIndividualState<KV,L
     }
 
     public boolean increase(KV id){
-        if(state.containsKey(id)){
-            state.lock(id);
-            set(id,state.get(id)+1);
+        //use cas to reset value.
+        if(state.isLocked(id))
+            UPDATE_CONFLICT_COUNTER.incrementAndGet();
+        state.lock(id);
+        if(!state.containsKey(id)){
+            set(id,1l);
             state.unlock(id);
-        }else
-            set(id,1L);
+        }else{
+            set(id,get(id)+1);
+            state.unlock(id);
+        }
         return true;
     }
 
     public boolean decrease(KV id){
-        if(state.containsKey(id)){
-            state.lock(id);
-            long count = state.get(id);
-            if(count > 0) set(id,count-1);
-            else return false;
-            state.unlock(id);
+        //use cas to reset value.
+        for(;;){
+            Long oldValue = get(id);
+            if(oldValue == null){throw new IllegalArgumentException("the degree of "+id+" vertex has already be zero!");}
+            else{
+                Long newValue = oldValue - 1;
+                if(state.replace(id,oldValue,newValue))
+                    break;
+            }
         }
-        return false;
+//        if(state.containsKey(id)){
+//            state.lock(id);
+//            long count = state.get(id);
+//            if(count > 0) set(id,count-1);
+//            else return false;
+//            state.unlock(id);
+//        }
+        return true;
     }
 
     public boolean update(EdgeEvent<KV, EV> event) {

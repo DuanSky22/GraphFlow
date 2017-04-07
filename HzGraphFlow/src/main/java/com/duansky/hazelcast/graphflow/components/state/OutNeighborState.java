@@ -8,6 +8,7 @@ import com.hazelcast.core.HazelcastInstance;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Neighbor state store and provide access to the neighbors of the specific vertex.
@@ -22,30 +23,40 @@ import java.util.Set;
 public class OutNeighborState<KV,EV> extends AbstractIndividualState<KV,Set<KV>,EdgeEvent<KV,EV>> implements IndividualState<KV,Set<KV>,EdgeEvent<KV,EV>> {
 
 
-    public OutNeighborState(HazelcastInstance hi){
-        super(Contracts.OUT_NEIGHBORHOOD_STATE+System.currentTimeMillis(),hi);
+    public OutNeighborState(String name,HazelcastInstance hi){
+        super(Contracts.OUT_NEIGHBORHOOD_STATE+"-"+name,hi);
     }
 
     public void lockKey(KV id){
         state.lock(id);
     }
 
+    public void tryLock(KV id, int time, TimeUnit unit) throws InterruptedException {
+        state.tryLock(id,time,unit);
+    }
+
     public void unlockKey(KV id){
         state.unlock(id);
     }
 
+    public boolean isLocked(KV id){
+        return state.isLocked(id);
+    }
+
     protected boolean addNeighbor(KV source, KV target){
+        if(state.isLocked(source))
+            UPDATE_CONFLICT_COUNTER.incrementAndGet();
+        state.lock(source);
         if(state.containsKey(source)){
-            state.lock(source);
             Set<KV> set = state.get(source);
             set.add(target);
             set(source,set);
-            state.unlock(source);
         }else{
             Set<KV> set = new HashSet<KV>();
             set.add(target);
             set(source,set);
         }
+        state.unlock(source);
         return true;
     }
 

@@ -25,10 +25,13 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
     HazelcastInstance hi;
     OutNeighborState<KV,EV> outNeighborState;
 
+    /**detect the conflict**/
+    public static long LOCK_CONFLICT = 0;
+
     public TriangleCountState(String name,HazelcastInstance hi){
         this.hi = hi;
         this.counter = hi.getAtomicLong(Contracts.TRIANGLE_COUNT_STATE+"-"+name);
-        outNeighborState = new OutNeighborState<KV,EV>(hi);
+        outNeighborState = new OutNeighborState<KV,EV>(Contracts.TRIANGLE_COUNT_STATE+"-"+name,hi);
     }
 
     public boolean update(EdgeEvent<KV,EV> event) {
@@ -39,10 +42,14 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
                 KV source = edge.getSource();
                 KV target = edge .getTarget();
 
-                outNeighborState.update(event);
-                outNeighborState.update(new EdgeEvent<KV, EV>(type,edge.reverse()));
+                //TODO dead lock?
+                if(outNeighborState.isLocked(source) || outNeighborState.isLocked(target))
+                    LOCK_CONFLICT++;
 
                 outNeighborState.lockKey(source); outNeighborState.lockKey(target);
+
+                outNeighborState.update(event);
+                outNeighborState.update(new EdgeEvent<KV, EV>(type,edge.reverse()));
 
                 Set<KV> sn = outNeighborState.get(source);
                 Set<KV> tn = outNeighborState.get(target);
@@ -57,7 +64,7 @@ public class TriangleCountState<KV,EV> implements IntegralState<Long,EdgeEvent<K
                 }
                 counter.addAndGet(increased);
 
-                outNeighborState.unlockKey(source); outNeighborState.unlockKey(target);
+                outNeighborState.unlockKey(target); outNeighborState.unlockKey(source);
                 return true;
             default:
                 return false;

@@ -4,10 +4,15 @@ import com.duansky.hazelcast.graphflow.components.AbstractAlgorithm;
 import com.duansky.hazelcast.graphflow.components.event.EdgeAddEventStreamFromFile;
 import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.storage.StorageFactory;
+import com.duansky.hazelcast.graphflow.util.Files;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.Map;
+
+import static com.duansky.hazelcast.graphflow.util.Contracts.TEST_BASE;
 
 /**
  * Created by SkyDream on 2017/2/16.
@@ -30,15 +35,21 @@ public class SSSP<KV,EV extends Number> extends AbstractAlgorithm<EdgeAddEventSt
     }
 
     public void run() {
+        System.out.println("start the single source shortest path algorithm.");
+        long start,end,counter = 1;
+        PrintWriter writer = Files.asPrintWriter(TEST_BASE+ File.separator+"sssp.txt");
         while(stream.hasNext()){
+            start = System.currentTimeMillis();
+
             EdgeEvent<KV,EV> event = stream.next();
             state.update(event);
             if(!directed) state.update(new EdgeEvent<KV, EV>(event.getType(),event.getValue().reverse()));
 
-            System.out.println("==============");
-            Map<KV,Long> distances = state.getCurrentState();
-            for(Map.Entry entry : distances.entrySet())
-                System.out.println(entry.getKey() + ":" + entry.getValue());
+            end = System.currentTimeMillis();
+
+            writer.append((end-start)+"\n");
+            writer.flush();
+            System.out.println("edge:"+(counter++)+"\ttime:"+(end-start));
         }
     }
 

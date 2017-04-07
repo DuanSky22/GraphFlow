@@ -6,10 +6,15 @@ import com.duansky.hazelcast.graphflow.components.event.EdgeEvent;
 import com.duansky.hazelcast.graphflow.components.event.EventType;
 import com.duansky.hazelcast.graphflow.graph.Edge;
 import com.duansky.hazelcast.graphflow.storage.StorageFactory;
+import com.duansky.hazelcast.graphflow.util.Files;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.Map;
+
+import static com.duansky.hazelcast.graphflow.util.Contracts.TEST_BASE;
 
 /**
  * Created by SkyDream on 2017/2/15.
@@ -32,12 +37,16 @@ public class DegreeDistribution<KV,EV> extends AbstractAlgorithm<EdgeAddEventStr
     }
 
     public void run(){
+        System.out.println("start the degree distribution algorithm.");
+        long start,end,counter = 1;
+        PrintWriter writer = Files.asPrintWriter(TEST_BASE+ File.separator+"dd.txt");
         while(stream.hasNext()){
+            start = System.currentTimeMillis();
             state.update(stream.next());
-            System.out.println("==============");
-            Map<KV,Long> degrees = state.getCurrentState();
-            for(Map.Entry entry : degrees.entrySet())
-                System.out.println(entry.getKey() + ":" + entry.getValue());
+            end = System.currentTimeMillis();
+            writer.append((end-start)+"\n");
+            writer.flush();
+            System.out.println("edge:"+(counter++)+"\ttime:"+(end-start));
         }
 
     }
